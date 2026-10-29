@@ -10,6 +10,44 @@ Seven runtimes covering three tiers: embedded (pure Go, no system deps), externa
 
 ## Installation
 
+### The `go-json` CLI (recommended)
+
+This module also builds the full `go-json` CLI, with every runtime wired in.
+
+```bash
+go install github.com/bitcode-framework/go-json-runtimes/cmd/go-json@latest
+```
+
+Or install a prebuilt binary, no Go toolchain required:
+
+```bash
+# Linux / macOS (Git Bash on Windows works too)
+curl -fsSL https://raw.githubusercontent.com/bitcode-framework/go-json-runtimes/main/install.sh | sh
+```
+
+```powershell
+# Windows PowerShell
+irm https://raw.githubusercontent.com/bitcode-framework/go-json-runtimes/main/install.ps1 | iex
+```
+
+The installer detects your OS and architecture, downloads the matching release
+from GitHub Releases, verifies its SHA-256 checksum, and puts the binary on your
+PATH. Supported targets: Linux, macOS, and Windows on amd64 and arm64.
+
+| Variable | Purpose |
+|----------|---------|
+| `GO_JSON_VERSION` | Release to install (default: latest), e.g. `v0.1.0` |
+| `GO_JSON_BIN_DIR` | Install directory (default: `/usr/local/bin`, else `~/.local/bin`) |
+| `GO_JSON_LITE` | Set to `1` to install `go-json-lite` (core only) |
+| `GO_JSON_BASE_URL` | Override the download base URL (mirrors, testing) |
+
+On Windows the equivalent parameters are `-Version`, `-BinDir`, and `-Lite`.
+
+If no prebuilt binary matches your platform, the installer falls back to
+`go install` when a Go toolchain is available.
+
+### As a Go library
+
 ```bash
 go get github.com/bitcode-framework/go-json-runtimes
 ```
