@@ -21,6 +21,17 @@ jobs:
           go-version: '1.24'
           cache: true
 
+      # The go.work workspace in the monorepo resolves go-json from local
+      # sources, so go.sum can silently miss the published module. Building
+      # standalone is what consumers do, so check it first.
+      - name: Verify standalone module resolution
+        run: |
+          set -euo pipefail
+          export GOWORK=off
+          go mod download
+          go build ./...
+          go mod verify
+
       - name: Build
         run: go build ./...
 
