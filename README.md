@@ -36,7 +36,7 @@ PATH. Supported targets: Linux, macOS, and Windows on amd64 and arm64.
 
 | Variable | Purpose |
 |----------|---------|
-| `GO_JSON_VERSION` | Release to install (default: latest), e.g. `v0.1.0` |
+| `GO_JSON_VERSION` | Release to install (default: latest), e.g. `v0.1.4` |
 | `GO_JSON_BIN_DIR` | Install directory (default: `/usr/local/bin`, else `~/.local/bin`) |
 | `GO_JSON_LITE` | Set to `1` to install `go-json-lite` (core only) |
 | `GO_JSON_BASE_URL` | Override the download base URL (mirrors, testing) |
