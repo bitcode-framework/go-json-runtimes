@@ -69,7 +69,11 @@ jobs:
           ext=""
           if [ "${GOOS}" = "windows" ]; then ext=".exe"; fi
           out="go-json-${GOOS}-${GOARCH}${ext}"
-          go build -trimpath -ldflags "-s -w" -o "dist/${out}" ./cmd/go-json
+          # Strip the leading "v" so `go-json version` prints a plain semver.
+          version="${GITHUB_REF_NAME#v}"
+          go build -trimpath \
+            -ldflags "-s -w -X github.com/bitcode-framework/go-json/cmd/cli.Version=${version}" \
+            -o "dist/${out}" ./cmd/go-json
           echo "ARTIFACT=${out}" >> "$GITHUB_ENV"
 
       - name: Checksum
