@@ -3,7 +3,7 @@ module github.com/bitcode-framework/go-json-runtimes
 go 1.24
 
 require (
-	github.com/bitcode-framework/go-json v0.1.1
+	github.com/bitcode-framework/go-json v0.1.2
 	github.com/dop251/goja v0.0.0-20260311135729-065cd970411c
 	github.com/fastschema/qjs v0.0.6
 	github.com/tetratelabs/wazero v1.9.0
