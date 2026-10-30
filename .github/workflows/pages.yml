@@ -1,0 +1,81 @@
+name: Playground
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cmd/wasm-playground/**'
+      - 'playground/**'
+      - 'docs/playground/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      # The samples are asserted here, so a demo that silently returns a
+      # literal instead of the computed value fails the build.
+      - name: Test the playground samples
+        run: go test ./playground/ -v -count=1
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Build WebAssembly playground
+        env:
+          GOOS: js
+          GOARCH: wasm
+          CGO_ENABLED: '0'
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          go build -trimpath -ldflags "-s -w" -o dist/go-json-runtimes.wasm ./cmd/wasm-playground
+
+      - name: Copy runtime shim and UI
+        run: |
+          set -euo pipefail
+          cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" dist/wasm_exec.js
+          cp docs/playground/index.html dist/
+          cp docs/playground/playground.js dist/
+
+      - name: Report size
+        run: ls -lh dist
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

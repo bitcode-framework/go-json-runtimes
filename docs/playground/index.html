@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>go-json-runtimes Playground</title>
+<meta name="description" content="Run go-json programs that call JavaScript modules through script: imports. The script runtime is compiled to WebAssembly.">
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-2: #1e222b;
+    --border: #2a2f3a;
+    --text: #e6e8ec;
+    --muted: #8b93a3;
+    --accent: #5b9dff;
+    --ok: #4ade80;
+    --err: #f87171;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --panel-2: #f0f2f5;
+      --border: #d8dce3;
+      --text: #1a1d23;
+      --muted: #616b7c;
+      --accent: #2563eb;
+      --ok: #15803d;
+      --err: #b91c1c;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    background: var(--panel);
+  }
+  header h1 { font-size: 1rem; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+  header h1 a { color: inherit; text-decoration: none; }
+  header h1 a:hover { color: var(--accent); }
+  .tag {
+    font-size: 0.7rem; color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 0.15rem 0.45rem; border-radius: 999px;
+    font-family: var(--mono);
+  }
+  .spacer { flex: 1; }
+  header nav { display: flex; gap: 1rem; font-size: 0.82rem; }
+  header nav a { color: var(--muted); text-decoration: none; }
+  header nav a:hover { color: var(--accent); }
+
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1px;
+    background: var(--border);
+    min-height: 0;
+  }
+  @media (max-width: 1100px) {
+    main { grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(3, minmax(200px, 1fr)); }
+  }
+  .pane { background: var(--panel); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .pane-head {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel-2);
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); font-weight: 600;
+  }
+  .pane-head .spacer { flex: 1; }
+
+  select, button {
+    font-family: inherit; font-size: 0.8rem;
+    border-radius: 6px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text);
+    padding: 0.3rem 0.55rem; cursor: pointer;
+  }
+  select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.primary:hover { filter: brightness(1.08); }
+  button:disabled { opacity: 0.5; cursor: default; }
+
+  .editor-wrap { flex: 1; position: relative; min-height: 0; }
+  textarea {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    resize: none; border: 0; padding: 0.9rem 1rem;
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.55; tab-size: 2;
+    background: var(--panel); color: var(--text); outline: none;
+  }
+
+  .output {
+    flex: 1; overflow: auto; padding: 0.9rem 1rem;
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.55;
+    white-space: pre-wrap; word-break: break-word; margin: 0; min-height: 0;
+  }
+  .output .ok { color: var(--ok); }
+  .output .err { color: var(--err); }
+  .output .meta { color: var(--muted); font-size: 0.75rem; }
+  .empty { color: var(--muted); font-style: italic; }
+
+  .status {
+    padding: 0.35rem 0.75rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.72rem; color: var(--muted);
+    font-family: var(--mono);
+    display: flex; gap: 1rem; background: var(--panel-2);
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1><a href="https://github.com/bitcode-framework/go-json-runtimes">go-json-runtimes</a> <span class="tag">playground</span></h1>
+  <span class="spacer"></span>
+  <nav>
+    <a href="https://github.com/bitcode-framework/go-json-runtimes">GitHub</a>
+    <a href="https://github.com/bitcode-framework/go-json-runtimes/tree/main/docs">Docs</a>
+    <a href="https://github.com/bitcode-framework/go-json">go-json</a>
+  </nav>
+</header>
+
+<main>
+  <section class="pane">
+    <div class="pane-head">
+      <span>go-json program</span>
+      <span class="spacer"></span>
+      <select id="samples" aria-label="Load an example">
+        <option value="">Load example…</option>
+      </select>
+      <button id="run" class="primary">Run</button>
+    </div>
+    <div class="editor-wrap">
+      <textarea id="program" spellcheck="false" aria-label="go-json program source"></textarea>
+    </div>
+    <div class="status"><span id="engine">loading engine…</span></div>
+  </section>
+
+  <section class="pane">
+    <div class="pane-head">
+      <span>helpers.js</span>
+      <span class="spacer"></span>
+      <span class="tag">script: import</span>
+    </div>
+    <div class="editor-wrap">
+      <textarea id="module" spellcheck="false" aria-label="JavaScript module source"></textarea>
+    </div>
+    <div class="status"><span>Resolved by the goja runtime inside WebAssembly</span></div>
+  </section>
+
+  <section class="pane">
+    <div class="pane-head">
+      <span>Result</span>
+      <span class="spacer"></span>
+      <button id="clear">Clear</button>
+    </div>
+    <pre class="output" id="output"><span class="empty">Press Run to execute the program.</span></pre>
+  </section>
+</main>
+
+<script src="wasm_exec.js"></script>
+<script src="playground.js"></script>
+</body>
+</html>
